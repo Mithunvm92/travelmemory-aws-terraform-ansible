@@ -1,0 +1,33 @@
+# SSH/private keys
+*.pem
+*.key
+
+# Environment/secrets
+.env
+*.env
+vault.yml
+vault.yaml
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log
+
+# Ansible
+*.retry
+__pycache__/
+*.pyc
+
+# Node.js
+node_modules/
+build/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

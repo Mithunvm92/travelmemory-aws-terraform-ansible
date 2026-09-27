@@ -1,0 +1,89 @@
+---
+- name: Configure TravelMemory MongoDB Server
+  hosts: database
+  become: true
+  gather_facts: true
+
+  tasks:
+
+    - name: Install required packages
+      apt:
+        name:
+          - gnupg
+          - curl
+        state: present
+        update_cache: true
+
+    - name: Import MongoDB 8.0 GPG key
+      shell: |
+        curl -fsSL https://pgp.mongodb.com/server-8.0.asc | \
+        gpg --dearmor -o /usr/share/keyrings/mongodb-server-8.0.gpg
+      args:
+        creates: /usr/share/keyrings/mongodb-server-8.0.gpg
+
+    - name: Add MongoDB repository
+      apt_repository:
+        repo: "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse"
+        filename: mongodb-org-8.0
+        state: present
+
+    - name: Update apt cache
+      apt:
+        update_cache: true
+
+    - name: Install MongoDB
+      apt:
+        name: mongodb-org
+        state: present
+
+    - name: Enable MongoDB
+      systemd:
+        name: mongod
+        enabled: true
+
+    - name: Start MongoDB
+      systemd:
+        name: mongod
+        state: started
+
+    - name: Configure MongoDB bind IP
+      lineinfile:
+        path: /etc/mongod.conf
+        regexp: '^ *bindIp:'
+        line: '  bindIp: 127.0.0.1,10.0.2.54'
+        backup: true
+      notify: Restart MongoDB
+
+    - name: Enable MongoDB authorization
+      blockinfile:
+        path: /etc/mongod.conf
+        marker: "# {mark} ANSIBLE MANAGED AUTHORIZATION"
+        block: |
+          security:
+            authorization: enabled
+      notify: Restart MongoDB
+
+    - name: Verify MongoDB service
+      command: systemctl is-active mongod
+      register: mongodb_status
+      changed_when: false
+
+    - name: Display MongoDB service status
+      debug:
+        msg: "MongoDB service status: {{ mongodb_status.stdout }}"
+
+    - name: Verify MongoDB listening port
+      shell: ss -lntp | grep 27017
+      register: mongodb_port
+      changed_when: false
+
+    - name: Display MongoDB listening port
+      debug:
+        msg: "{{ mongodb_port.stdout }}"
+
+  handlers:
+
+    - name: Restart MongoDB
+      systemd:
+        name: mongod
+        state: restarted

@@ -1,0 +1,49 @@
+---
+- name: Configure TravelMemory Web Server
+  hosts: web
+  become: true
+
+  tasks:
+
+    - name: Update apt package cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install required system packages
+      apt:
+        name:
+          - git
+          - curl
+          - build-essential
+        state: present
+
+    - name: Install Node.js repository
+      shell: |
+        curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+      args:
+        executable: /bin/bash
+
+    - name: Install Node.js and npm
+      apt:
+        name:
+          - nodejs
+        state: present
+
+    - name: Verify Node.js installation
+      command: node --version
+      register: node_version
+      changed_when: false
+
+    - name: Display Node.js version
+      debug:
+        msg: "Node.js version: {{ node_version.stdout }}"
+
+    - name: Verify npm installation
+      command: npm --version
+      register: npm_version
+      changed_when: false
+
+    - name: Display npm version
+      debug:
+        msg: "npm version: {{ npm_version.stdout }}"

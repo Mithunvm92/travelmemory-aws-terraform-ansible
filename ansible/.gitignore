@@ -1,0 +1,26 @@
+# Secrets
+.env
+*.env
+*.pem
+*.key
+vault.yml
+vault.yaml
+
+# Ansible
+*.retry
+__pycache__/
+*.pyc
+
+# Terraform
+../terraform/.terraform/
+../terraform/*.tfstate
+../terraform/*.tfstate.*
+../terraform/crash.log
+../terraform/*.tfvars
+../terraform/*.tfvars.json
+
+# Node
+../TravelMemory/node_modules/
+../TravelMemory/frontend/node_modules/
+../TravelMemory/backend/node_modules/
+../TravelMemory/frontend/build/

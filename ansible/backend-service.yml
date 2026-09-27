@@ -1,0 +1,47 @@
+---
+- name: Deploy TravelMemory Backend Service
+  hosts: web
+  become: true
+  gather_facts: false
+
+  tasks:
+
+    - name: Create TravelMemory backend systemd service
+      copy:
+        dest: /etc/systemd/system/travelmemory-backend.service
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          [Unit]
+          Description=TravelMemory Backend
+          After=network.target
+          Wants=network-online.target
+
+          [Service]
+          Type=simple
+          User=ubuntu
+          Group=ubuntu
+          WorkingDirectory=/opt/TravelMemory/backend
+          EnvironmentFile=/opt/TravelMemory/backend/.env
+          Environment=NODE_ENV=production
+          ExecStart=/usr/bin/node /opt/TravelMemory/backend/index.js
+          Restart=always
+          RestartSec=5
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd
+      systemd:
+        daemon_reload: true
+
+    - name: Enable TravelMemory backend
+      systemd:
+        name: travelmemory-backend
+        enabled: true
+
+    - name: Start TravelMemory backend
+      systemd:
+        name: travelmemory-backend
+        state: started
